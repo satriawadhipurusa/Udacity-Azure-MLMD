@@ -1,6 +1,12 @@
 # Operationalizing Machine Learning Pipeline
 
-In this project we created a Pipeline of Automated Machine Learning that utilizes many features of Azure Machine Learning Studio and SDK
+In this project we created a Pipeline of Automated Machine Learning that utilizes many features of Azure Machine Learning Studio and SDK. The model will be trained using Automated ML, which is an optimization algorithm that will aim to reach the best metrics or lowest error through the combinations of:
+
+- Preprocessing steps - the algorithm will try to combine preprocessing steps such as StandardScaler, MaxAbsScaler, etc
+- Classifier / Regressor Model - the algorthm will search the best alglgorithm from the likes of Logistic Regression, XGBoost, Random Forest, etc
+- Hyperparameters of each Model - the hyperparams of each model will included in the search space
+
+The Automated ML help to kickstart the project and make iterations faster, so we can put something decent into production. While the pipeline itself made, so the whole experiment can be made **reproducible**. All of them are tracked and versioned in Azure ML and make data debugging or model debugging easier by tracking data Lineage or data Provenance.
 
 ## Architectural Diagram
 
@@ -13,6 +19,16 @@ On high overview, this project utilizes the following components on Azure Cloud:
 - Azure Storage Services
 
 First, the datasets must be uploaded and registered to Azure Datasets. This will be consumed as the entrypoint of the Machine Learning Pipeline, that will be executed by Compute Cluster. The steps only consist of Automated ML, that will determine the best model. Once the training completed, the model will be registered on Azure Machine Learning Studio's model registry. We can deploy this model on Azure Container Instances (ACI) with authentication enabled by default. Additionally, Application Insight can also be enabled for monitoring and logging. This model endpoint can be used for inference by clients like mobile or webapp by real-time or batch. All of this made possible by Service Principal that has been shared the Workspace's ownership role.
+
+## Future Improvement
+
+In the future, the followings can be done to improve the project further:
+
+- Create an end-to-end Pipeline from data ingestion, transformation, and deployment without manual interference
+- Set a recurring scheduled or triggered scheduled based on alarms such as Data Drift or Model metrics drift
+- Deploy to kubernetes and make canary release for new model versions so A/B test can be done before switch completely to the new one
+- Set a monitoring of important metrics not just system metrics from Application Insights but also Model Metrics and Business Metrics
+- Make parameter to be dynamic, such as user can choose data source or features to be included (i.e. integrate Feature Store into the pipeline)
 
 ## Key Steps
 
