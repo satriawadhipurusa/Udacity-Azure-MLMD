@@ -1,18 +1,118 @@
-*NOTE:* This file is a template that you can use to create the README for your project. The *TODO* comments below will highlight the information you should be sure to include.
+# Operationalizing Machine Learning Pipeline
 
-
-# Your Project Title Here
-
-*TODO:* Write an overview to your project.
+This project aims to demonstrate on creating and publishing Pipeline using Azure Machine Learning Studio with Automated ML
 
 ## Architectural Diagram
-*TODO*: Provide an architectual diagram of the project and give an introduction of each step. An architectural diagram is an image that helps visualize the flow of operations from start to finish. In this case, it has to be related to the completed project, with its various stages that are critical to the overall flow. For example, one stage for managing models could be "using Automated ML to determine the best model". 
+
+![udacity-c2-arch](assets/udacity-c2-arch.png)
+On high overview, this project utilizes the following components on Azure Cloud:
+
+- Service Principal
+- Azure Machine Learning Studio
+- Azure Container Instances
+- Azure Storage Services
+
+First, the datasets must be uploaded and registered to Azure Datasets. This will be consumed as the entrypoint of the Machine Learning Pipeline, that will be executed by Compute Cluster. The steps only consist of Automated ML, that will determine the best model. Once the training completed, the model will be registered on Azure Machine Learning Studio's model registry. We can deploy this model on Azure Container Instances (ACI) with authentication enabled by default. Additionally, Application Insight can also be enabled for monitoring and logging. This model endpoint can be used for inference by clients like mobile or webapp by real-time or batch. All of this made possible by Service Principal that has been shared the Workspace's ownership role.
 
 ## Key Steps
-*TODO*: Write a short discription of the key steps. Remeber to include all the screenshots required to demonstrate key steps. 
+
+1. **Create and configure Service Principal**
+   Service principal must be created and configured to use Workspace, so authentication can be done automatically
+
+Make sure the azure sdk and cli are installed then
+
+```sh
+$ az ad sp create-for-rbac --sdk-auth --name ml-auth
+```
+
+![service-principal](assets/service-principal.png)
+
+we can show the id has been created by checking the `clientId` created from the above command
+
+```
+$ az ad sp show --id <yourClientId>
+```
+
+then we execute this command instead, since v2 of azure ml cli is used
+
+```
+az role assignment create --assignee <objectId> --role "Owner" --scope "/<subscriptionId>/resourceGroups/<yourresourceName>/providers/Microsoft.MachineLearningServices/workspaces/<yourWorkspace>"
+```
+
+![role-assignment](assets/role-assignment.png)
+
+2. **Register Dataset & Create Automated ML Run**
+   Pre-requisites:
+
+- [`bankmarketing-train.csv`](https://automlsamplenotebookdata.blob.core.windows.net/automl-sample-notebook-data/bankmarketing_train.csv) dataset is created and registered using the Datasets Tab
+  ![dataset](assets/dataset.png)
+- AML Compute Cluster is created and set to use `Standard DS12_v2` with minimum of 1 node
+
+After that, create an Automated ML run using the compute cluster and the registered dataset, choose 1 hour as exit criterion and set the _concurrency_ number according to the number of compute cluster. Once in a while, check the experiments tab to see if the Automated ML run has finished.
+
+Finished Automated ML:
+![finished-automlrun](assets/finished-automlrun.png)
+
+Best Model:
+![best-model](assets/best-model.png)
+![best-model-summary](assets/best-model-summary.png)
+
+3. **Deploy the Best Model & Enable Logging**
+   The best model can be deploy by clicking the Deploy tab, and choose "Deploy to webservice". Next choose the Azure Container Instances (ACI) deployment with authentication enabled.
+
+After deployment finished, application insights can be enabled using Azure ML Python SDK, and also print out the logging. The script is available in `logging.py`
+
+Enabled App Insights:
+![app-insights-enabled](assets/app-insights-enabled.png)
+
+Logs Output:
+![logs-output](assets/logs-output.png)
+
+4. **Interact with Swagger**
+   Copy or download the swagger from the Endpoints page of deployed model. We then use the `swagger.sh1` and `serve.py` to interact with the swagger and see how we can send the payload to the prediction endpoint using the HTTP API. The swagger should run in http://localhost (port 80) and point the location of `swagger.json` in http://localhost:8000/swagger.json (must be in the same directory!)
+
+![swagger](assets/swagger.png)
+![swagger2](assets/swagger2.png)
+![swagger3](assets/swagger3.png)
+
+5. **Consume the Endpoint**
+   The model endpoint can be consume using the prediction URI and api key that we get from the Endpoint page of deployed model. We then use the `endpoint.py` by input the needed variable [redacted] and run the script to send some data.
+
+   Prediction Output:
+   ![endpoint](assets/endpoint.png)
+
+   Log of Prediction:
+   ![logs-prediction](assets/logs-prediction.png)
+
+   You can also benchmark your endpoint to see some stats like Transaction per Second (TPS) or average response time (ms), this can then be used as a baseline of your model endpoints behavior in day to day operations after deployment. Use the `benchmark.sh` script and input the needed variable like prediction URI [redacted] and api key [redacted].
+
+   ![benchmark](assets/benchmark.png)
+   ![benchmark2](assets/benchmark2.png)
+
+6. **Create and Publish the Pipeline**
+   Once the POC has completed, we can then write the pipeline to make it reproducible and published it so people can use and trigger our pipeline using HTTP API. First we use `aml-pipelines-with-automated-machine-learning-step.ipynb` and upload it to AML Compute Instance and interact with Azure Machine Learning using the SDK.
+
+   Pipeline Created:
+   ![pipeline](assets/pipeline.png)
+
+   Pipeline Modules:
+   ![pipeline-module](assets/pipeline-module.png)
+
+   Published Pipeline:
+   ![published-pipeline-overview](assets/published-pipeline-overview.png)
+
+7. **Interact with the Published Pipeline**
+   We can then interact with pipeline endpoint using any HTTP tools, we will use python `requests` module for this purpose. In the same notebook, we send an http request and scheduled the pipeline to run. Since the pipeline are using the same parameter, hence the result will be the same (using the cached previous run)
+
+   Pipeline Widget in Notebook:
+   ![pipeline-widget](assets/pipeline-widget.png)
+
+   Pipeline Endpoint:
+   ![pipeline-endpoint](assets/pipeline-endpoint.png)
+
+   Pipeline Scheduled Run:
+   ![scheduled-pipeline](assets/scheduled-pipeline.png)
 
 ## Screen Recording
-*TODO* Provide a link to a screen recording of the project in action. Remember that the screencast should demonstrate:
 
-## Standout Suggestions
-*TODO (Optional):* This is where you can provide information about any standout suggestions that you have attempted.
+To access the full screen recording visit the youtube link: [Udacity - Azure MLND - Operationalizing Maching Learning](https://www.youtube.com/watch?v=P83NT-55z4U)
