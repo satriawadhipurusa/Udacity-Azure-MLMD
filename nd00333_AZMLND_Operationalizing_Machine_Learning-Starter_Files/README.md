@@ -1,6 +1,6 @@
 # Operationalizing Machine Learning Pipeline
 
-This project aims to demonstrate on creating and publishing Pipeline using Azure Machine Learning Studio with Automated ML
+In this project we created a Pipeline of Automated Machine Learning that utilizes many features of Azure Machine Learning Studio and SDK
 
 ## Architectural Diagram
 
