@@ -8,6 +8,8 @@ In this project we created a Pipeline of Automated Machine Learning that utilize
 
 The Automated ML help to kickstart the project and make iterations faster, so we can put something decent into production. While the pipeline itself made, so the whole experiment can be made **reproducible**. All of them are tracked and versioned in Azure ML and make data debugging or model debugging easier by tracking data Lineage or data Provenance.
 
+In the end, the model will be consumed as REST HTTP Service endpoint, and not deployed to mobile or edge devices. The advantage is that we can scale the model using Inference Cluster in the Cloud or using accelerator like GPU. The downside is, this won't be available without internet.
+
 ## Architectural Diagram
 
 ![udacity-c2-arch](assets/udacity-c2-arch.png)
